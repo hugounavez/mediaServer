@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var player = require('play-sound')(opts = {});
+var fileHandler = require("./fileHandler.js");
 const fs = require('fs');
 
 // Global variables
@@ -12,38 +13,31 @@ var dictionary = {};
 
 router.get('/', function(req, res, next) {
 
+	fileHandler.readPath(currentPath,function(test){
+		console.log("esto es una super prueba: ", test);	
+		});
+
 	fs.readdir(currentPath, (err, files) => {
 
-	var first = "<!DOCTYPE html><html><body><h2>An unordered HTML list</h2><ul>";
-	var tail = "</ul></body></html>";
-	var t = "";
 	var counter = 0;
 	dictionary = {"files":{}, "folders": {}};
-
 
 	files.forEach(function(element) {
 
 		var stats = fs.statSync(folderPath.concat(element));
 		if (stats.isFile()){
-			dictionary["files"][counter] = element;
-			t = "<a href=/play/".concat(counter).concat(">").concat(element).concat("</a>");
-			
+			dictionary["files"][counter] = element;	
 		}else{
 			dictionary["folders"][counter] = currentPath.concat(element);
-			t = "<a href=/changeFolder/".concat(counter).concat(">").concat(element).concat("</a>");
 		}
 
 			counter = counter + 1;
-			first = first.concat("<li>").concat(t).concat("</li>");
-
-
+		});
+    		
+		res.send(dictionary);
+		})
 
 	});
-	       	        res.send(first.concat(tail));
-
-})
-
-});
 
 
 
