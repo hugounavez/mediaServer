@@ -2,8 +2,8 @@
 const fs = require('fs');
 
 module.exports = {
-  sayHelloInEnglish: function() {
-    return "HELLO";
+  example: function() {
+    return "Hello";
   },
 
    readPath: function(path, callback){
@@ -28,10 +28,18 @@ module.exports = {
 		
 		callback(dictionary);
 	});
-},
-   usingItNow : function(callback) {
-  	callback("si"); // I dont want to throw an error, so I pass null for the error argument
-  }
+   },
+	upPath: function(maximumPath, pathToBeChanged, callback){
+	// This method receive a path to be cut, and also a path to assure 
+	// the path isn't going to be outsite of the original folder. 
+		if (maximumPath == pathToBeChanged){
+			// The path is not changed
+			callback(pathToBeChanged)
+		}else{
+			callback(pathToBeChanged.split('/').slice(0, -1).join('/').concat("/"));
+		}
+	
+	}
 };
 
 

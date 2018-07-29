@@ -13,64 +13,39 @@ var dictionary = {};
 
 router.get('/', function(req, res, next) {
 
-	fileHandler.readPath(currentPath,function(test){
-		console.log("esto es una super prueba: ", test);	
-		});
-
-	fs.readdir(currentPath, (err, files) => {
-
-	var counter = 0;
-	dictionary = {"files":{}, "folders": {}};
-
-	files.forEach(function(element) {
-
-		var stats = fs.statSync(folderPath.concat(element));
-		if (stats.isFile()){
-			dictionary["files"][counter] = element;	
-		}else{
-			dictionary["folders"][counter] = currentPath.concat(element);
-		}
-
-			counter = counter + 1;
-		});
-    		
-		res.send(dictionary);
-		})
-
+	fileHandler.readPath(currentPath, function(data){
+		dictionary = data;
+		res.send(data);
 	});
-
-
-
-
-router.get('/changefolder/:songId', function (req, res) {
-
-	var datos = req.params.songId;
-	var modified = dictionary["folders"][datos].split(' ').join(" ");
-	console.log("modified", modified);
-	currentPath = modified;
-
-	fs.readdir(currentPath, (err, files) => {
-
-	var first = "<!DOCTYPE html><html><body><h2>An unordered HTML list</h2><a href=/stop>Test</a><ul>";
-	var tail = "</ul></body></html>";
-	var t = "";
-	var counter = 0;
-	dictionary = {"files":{}, "folders": {}};
-
-	files.forEach(function(element) {
-		dictionary["files"][counter] = element;
-		//dictionary[counter] = element;
-		counter = counter + 1;
-		t = "<a href=/play/".concat(counter).concat(">").concat(element).concat("</a>");
-		first = first.concat("<li>").concat(t).concat("</li>");
-	});
-
-	  res.send(first.concat(tail));
-})
 
 
 });
 
+
+
+
+router.get('/changefolder/:newFolder', function (req, res) {
+
+	var datos = req.params.newFolder;
+	var modified = dictionary["folders"][datos];
+	this.currentPath = modified.concat("/");
+	fileHandler.readPath(this.currentPath, function(data){
+		dictionary = data;
+		res.send(data);
+	});
+
+
+});
+
+router.get('/upFolder', function(req,res){
+		fileHandler.upPath(this.folderPath, currentPath, function(newPath){
+			this.currentPath = newPath;
+			fileHandler.readPath(this.currentPath, function(data){
+				dictionary = data;
+				res.send(data);
+			});
+		});
+	}); 
 
 
 router.get('/play/:songId', function (req, res) {
@@ -80,10 +55,13 @@ router.get('/play/:songId', function (req, res) {
 	}
 
 	var datos = req.params.songId;
+	res.send(dictionary["files"][datos]);
 	var modified = dictionary["files"][datos].split(' ').join(" ");
 	console.log("modified", modified);
-	var path = currentPath.concat("/").concat(modified);
+	var path = this.currentPath.concat(modified);
 	console.log("path ",path);
+
+
 	this.audio = player.play(path, function(err){
 
 	  if (err != null){
@@ -92,29 +70,11 @@ router.get('/play/:songId', function (req, res) {
 		}else{
 		  	throw err
 		}
-	}
-  
+	}else{
+		console.log("termino la cancion");
+		}
+  	})
 
-})
-
-fs.readdir(currentPath, (err, files) => {
-
-	var first = "<!DOCTYPE html><html><body><h2>An unordered HTML list</h2><a href=/stop>Test</a><ul>";
-	var tail = "</ul></body></html>";
-	var t = "";
-	var counter = 0;
-	dictionary = {"files":{}, "folders": {}};
-
-	files.forEach(function(element) {
-		dictionary["files"][counter] = element;
-		//dictionary[counter] = element;
-		counter = counter + 1;
-		t = "<a href=/play/".concat(counter).concat(">").concat(element).concat("</a>");
-		first = first.concat("<li>").concat(t).concat("</li>");
-	});
-
-	  res.send(first.concat(tail));
-})
 
 });
 
@@ -140,12 +100,5 @@ router.get('/stop', function (req, res) {
 
 });
 
-
-
-
-
-router.get('/users/:userId/books/:bookId', function (req, res) {
-  res.send(req.params)
-})
 
 module.exports = router;
